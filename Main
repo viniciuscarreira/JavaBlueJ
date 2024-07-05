@@ -1,0 +1,201 @@
+------------------ MAIN ------------------
+
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Scanner;
+public class Main
+{
+    public static void main(){
+        Scanner scanner = new Scanner(System.in);
+        
+        // Solicitação do valor da média do usuário
+        System.out.print("Digite o valor da média desejada: ");
+        int media = scanner.nextInt();
+        GeradorAleatorio gerador = new GeradorAleatorio();
+        gerador.setMedia(media);
+        Queue<Cliente> filaClientes = new LinkedList<>();
+        double tempoMaximoSimulacao = 480; // Tempo máximo de simulação em minutos (8 horas)
+        double tempoAtendimento=0;
+        double tempoChegada=0;
+        double tempoAtual = 0;
+        int clientesAtendidos=0;
+        double tempoEspera=0;
+        double tempoSaida=0;
+        double temporario=0;
+        int qT=0;
+        int bT=0;
+        tempoChegada = gerador.getTempTempo();
+        gerador.geraAleatorio();
+        Cliente novoCliente = new Cliente();
+        novoCliente.setId(filaClientes.size() + 1);
+        tempoAtendimento = gerador.getTempTempo();
+        novoCliente.setTempoChegada(tempoChegada);
+        novoCliente.setTempoAtendimento(tempoAtendimento);
+        double signum;
+        System.out.println("=========================Inicio da Simulação=========================");
+        while (tempoAtual < tempoMaximoSimulacao) {
+            // Gera um novo cliente com tempo de atendimento aleatório
+            novoCliente.setId(filaClientes.size() + 1);
+            novoCliente.setTempoChegada(tempoChegada);
+            novoCliente.setTempoAtendimento(tempoAtendimento);
+
+            filaClientes.offer(novoCliente); // Adiciona cliente à fila
+            System.out.println("============================================================================================================");
+            System.out.println("Tempo " + tempoAtual + ": Cliente " + clientesAtendidos + " Tempo de chegada " + novoCliente.getTempoChegada());
+            System.out.println("============================================================================================================");
+            // Atende o cliente atual
+            if (!filaClientes.isEmpty()) {
+                Cliente clienteAtual = filaClientes.poll();
+                tempoSaida = tempoChegada + clienteAtual.getTempoAtendimento();
+                
+                System.out.println("Tempo " + tempoAtual + ": Atendendo Cliente " + clientesAtendidos);
+                System.out.println("Tempo " + tempoAtual + ": Tempo de chegada do Cliente " + clientesAtendidos + ": " + clienteAtual.getTempoChegada());
+                System.out.println("Tempo " + tempoAtual + ": Tempo de atendimento do Cliente " + clientesAtendidos + ": " + clienteAtual.getTempoAtendimento());
+                System.out.println("Tempo " + tempoSaida + ": Cliente " + clientesAtendidos + " atendido");
+                
+                tempoAtual = tempoSaida + tempoAtual; // Atualiza o tempo atual para o tempo de saída do cliente
+                clientesAtendidos++;
+                qT=filaClientes.size();
+                bT=1;
+            } else {
+                tempoAtual++; // Avança o tempo caso não haja clientes na fila
+                qT = 0;
+            }
+            gerador.geraAleatorio();
+            signum = Math.signum(temporario);
+            tempoChegada = gerador.getTempTempo();
+            if(clientesAtendidos == 0){
+                tempoEspera = 0;
+            }else{
+                 temporario = tempoSaida - tempoChegada;
+                 if(signum == 0.0){
+                     tempoEspera = tempoEspera + 0;
+                 }
+                 else if(signum == -1.0){
+                     bT= 0;
+                 }
+                 else{
+                     tempoEspera = tempoEspera + temporario;
+                 }
+            }
+            gerador.geraAleatorio();
+            tempoAtendimento = gerador.getTempTempo();
+            System.out.println("============================================================================================================");
+            System.out.println("Tempo atual: " + tempoAtual + " qT: " + qT + " bT: " + bT);
+        }
+        System.out.println("============================================================================================================");
+        System.out.println("Simulação encerrada após " + tempoMaximoSimulacao + " minutos." + "Quantidade de clientes atendidos: " + clientesAtendidos + " Espera Total de " + tempoEspera);
+        
+        scanner.close(); // Fechar o scanner após a leitura
+    
+    }
+}
+
+
+
+
+------------------ GeradorAleatorio ------------------
+
+public class GeradorAleatorio
+{
+    public int semente = 3; // Valor inicial (seed)
+    public int mod = 109; // Módulo
+    public int constanteUsuarioInput = 7; // input do usuário
+    public int media = 5; //input do usuario
+    public double[] numerosTransformados = new double[mod-1];
+    public double[] numerosExpo = new double[mod-1];
+    public double[] numeros = new double[mod-1];
+    public int i = 1;
+    public int stop = 0;
+    public double tempTempo = 0;
+    public double getTempTempo(){
+        return tempTempo;
+    }
+    public void setMedia(int media){
+        this.media = media;
+    }
+    public void geraAleatorio(){
+        if(stop == 0){
+            numeros[0] = ((semente + constanteUsuarioInput) % mod);
+            numerosTransformados[0] = numeros[0] / (mod - 1);
+            numerosExpo[0] = Math.abs((Math.log(numerosTransformados[0])) * media);
+            tempTempo = numerosExpo[0];
+            stop = 1;
+        }
+        else{
+            numeros[i] = ((numeros[i - 1] + constanteUsuarioInput) % mod);
+            numerosTransformados[i] = numeros[i] / (mod - 1);
+            if(numerosTransformados[i] == 0){
+                numerosExpo[i] = 0;
+                tempTempo = numerosExpo[i];
+                i = i + 1;
+            }
+            else{
+                numerosExpo[i] = Math.abs((Math.log(numerosTransformados[i])) * media);
+                tempTempo = numerosExpo[i];
+                i = i + 1;
+            }
+        }
+    }
+    
+    public double somaTempo(){
+        double soma=0;
+        for(int j=0; j<numerosExpo.length; j++){
+            soma = soma + numerosExpo[j];
+        }
+        System.out.println("Aqui está a soma " + soma);
+        return soma;
+    }
+    
+    public void imprimeAleatorios(){
+        System.out.println("Segue os numeros do congruente aditivo");
+        for(int m=0; m < mod-1; m++){
+            System.out.println(numeros[m]);
+        }
+        System.out.println("Segue os numeros do congruente transformados");
+        for(int m=0; m < mod-1; m++){
+            System.out.println(numerosTransformados[m]);
+        }
+        //System.out.println("Segue os numeros exponenciais");
+        //for(int m=0; m < mod-1; m++){
+        //    System.out.println(numerosExpo[m]);
+        //}
+    }
+}
+
+
+
+
+
+------------------ Cliente  ------------------
+
+class Cliente {
+    private int id;
+    private double tempoChegada;
+    private double tempoAtendimento;
+
+    // Getters e setters
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public double getTempoChegada() {
+        return tempoChegada;
+    }
+
+    public void setTempoChegada(double tempoChegada) {
+        this.tempoChegada = tempoChegada;
+    }
+
+    public double getTempoAtendimento() {
+        return tempoAtendimento;
+    }
+
+    public void setTempoAtendimento(double tempoAtendimento) {
+        this.tempoAtendimento = tempoAtendimento;
+    }
+}
